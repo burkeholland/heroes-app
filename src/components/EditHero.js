@@ -7,17 +7,17 @@ const EditHero = props => {
         <div className="editfields">
           <div>
             <label>id: </label>
-            {props.addingHero
-              ? <input
-                  type="number"
-                  name="id"
-                  placeholder="id"
-                  value={props.selectedHero.id}
-                  onChange={props.onChange}
-                />
-              : <label className="value">
-                  {props.selectedHero.id}
-                </label>}
+            {props.addingHero ? (
+              <input
+                type="number"
+                name="id"
+                placeholder="id"
+                value={props.selectedHero.id}
+                onChange={props.onChange}
+              />
+            ) : (
+              <label className="value">{props.selectedHero.id}</label>
+            )}
           </div>
           <div>
             <label>name: </label>

@@ -1,96 +1,82 @@
 import React, { Component } from 'react';
 
-import EditHero from './EditHero';
 import Hero from './Hero';
-
 import api from '../api';
 
 class Heroes extends Component {
-  constructor() {
-    super();
+  state = {
+    heroes: [],
+    creatingHero: false,
+    lazyEdit: null
+  };
 
-    this.state = {
-      heroes: [],
-      creatingHero: false
-    };
+  async componentDidMount() {
+    const { default: EditHero } = await import('./EditHero');
 
-    this.handleEnableAddMode = this.handleEnableAddMode.bind(this);
-    this.handleSave = this.handleSave.bind(this);
-    this.handleOnChange = this.handleOnChange.bind(this);
-    this.handleDelete = this.handleDelete.bind(this);
-    this.handleCancel = this.handleCancel.bind(this);
-    this.handleSelect = this.handleSelect.bind(this);
-  }
+    let json = await api.get();
 
-  componentDidMount() {
-    api.get().then(json => this.setState({ heroes: json }));
-  }
-
-  handleSelect(hero) {
-    this.setState({ selectedHero: hero });
-  }
-
-  handleDelete(event, hero) {
-    event.stopPropagation();
-
-    api.destroy(hero).then(() => {
-      let heroes = this.state.heroes;
-      heroes = heroes.filter(h => h !== hero);
-      this.setState({ heroes: heroes });
-
-      if (this.selectedHero === hero) {
-        this.setState({ selectedHero: null });
-      }
+    this.setState({
+      heroes: json,
+      lazyEdit: EditHero
     });
   }
 
-  handleEnableAddMode() {
+  handleSelect = hero => {
+    this.setState({ selectedHero: hero });
+  };
+
+  handleDelete = async (event, hero) => {
+    event.stopPropagation();
+
+    let json = await api.destroy(hero);
+
+    let heroes = this.state.heroes;
+    heroes = heroes.filter(h => h !== hero);
+    this.setState({ heroes: heroes });
+
+    if (this.selectedHero === hero) {
+      this.setState({ selectedHero: null });
+    }
+  };
+
+  handleEnableAddMode = () => {
     this.setState({
       addingHero: true,
       selectedHero: { id: '', name: '', saying: '' }
     });
-  }
+  };
 
-  handleCancel() {
+  handleCancel = () => {
     this.setState({ addingHero: false, selectedHero: null });
-  }
+  };
 
-  handleSave() {
+  handleSave = async () => {
     let heroes = this.state.heroes;
 
     if (this.state.addingHero) {
-      api
-        .create(this.state.selectedHero)
-        .then(result => {
-          console.log('Successfully created!');
+      let result = await api.create(this.state.selectedHero);
 
-          heroes.push(this.state.selectedHero);
-          this.setState({
-            heroes: heroes,
-            selectedHero: null,
-            addingHero: false
-          });
-        })
-        .catch(err => {
-          console.log(err);
-        });
+      heroes.push(this.state.selectedHero);
+      this.setState({
+        heroes: heroes,
+        selectedHero: null,
+        addingHero: false
+      });
     } else {
-      api
-        .update(this.state.selectedHero)
-        .then(() => {
-          this.setState({ selectedHero: null });
-        })
-        .catch(err => {});
-    }
-  }
+      let result = await api.update(this.state.selectedHero);
 
-  handleOnChange(event) {
+      this.setState({ selectedHero: null });
+    }
+  };
+
+  handleOnChange = event => {
     let selectedHero = this.state.selectedHero;
     selectedHero[event.target.name] = event.target.value;
     this.setState({ selectedHero: selectedHero });
-  }
+  };
 
   render() {
+    const EditHero = this.state.lazyEdit;
     return (
       <div>
         <ul className="heroes">
@@ -108,13 +94,17 @@ class Heroes extends Component {
         </ul>
         <div className="editarea">
           <button onClick={this.handleEnableAddMode}>Add New Hero</button>
-          <EditHero
-            addingHero={this.state.addingHero}
-            onChange={this.handleOnChange}
-            selectedHero={this.state.selectedHero}
-            onSave={this.handleSave}
-            onCancel={this.handleCancel}
-          />
+          {EditHero ? (
+            <EditHero
+              addingHero={this.state.addingHero}
+              onChange={this.handleOnChange}
+              selectedHero={this.state.selectedHero}
+              onSave={this.handleSave}
+              onCancel={this.handleCancel}
+            />
+          ) : (
+            <h2>Loading...</h2>
+          )}
         </div>
       </div>
     );

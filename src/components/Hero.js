@@ -13,15 +13,9 @@ const Hero = props => {
         Delete
       </button>
       <div className="hero-element">
-        <div className="badge">
-          {props.hero.id}
-        </div>
-        <div className="name">
-          {props.hero.name}
-        </div>
-        <div className="saying">
-          {props.hero.saying}
-        </div>
+        <div className="badge">{props.hero.id}</div>
+        <div className="name">{props.hero.name}</div>
+        <div className="saying">{props.hero.saying}</div>
       </div>
     </li>
   );
